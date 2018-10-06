@@ -1,0 +1,42 @@
+name: Phil
+
+data:
+  password: "5clwH02Kz4oiM1jI"
+  user: ""
+
+management:
+  context-path: "/jms"
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  security:
+    enabled: false
+
+server:
+  servlet:
+    context-path: "/jms"
+
+spring:
+  datasource:
+    url: "jdbc:h2:mem:jmswine;DB_CLOSE_DELAY=-1;MODE=MySQL;MV_STORE=FALSE;MVCC=FALSE"
+    driverClassName: "org.h2.Driver"
+    username: "sa"
+    password: ""
+  jpa:
+    database-platform: "org.hibernate.dialect.H2Dialect"
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+  h2:
+    console:
+      enabled: true
+      path: /winelist/h2
+
+sql:
+  fetchEntireList: "SELECT * FROM wine ORDER BY producer, name, year"
+  insertEntry: |-
+    INSERT INTO wine
+    (producer, name, type, year, price, qty, bin, ready, rating)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+
