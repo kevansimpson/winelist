@@ -4,6 +4,7 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.sccpa.winelist.data.WineEntry;
 import com.sccpa.winelist.data.WineRepository;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -30,7 +31,7 @@ public class ImportDataService {
     public Map<String, Object> importCsvData() {
         final Map<String, Object> csvData = readCsvData();
         final List<WineEntry> data = (List<WineEntry>) csvData.get("data");
-        data.forEach(wineRepository::insertEntry);
+        data.forEach(wineRepository::insert);
 
         return csvData;
     }
@@ -51,8 +52,8 @@ public class ImportDataService {
                 entry.setName(strings[2]);
                 entry.setType(strings[3]);
                 entry.setYear(strings[4]);
-                entry.setPrice(strings[5]);
-                entry.setQty(strings[6]);
+                entry.setPrice(NumberUtils.toDouble(strings[5]));
+                entry.setQty(NumberUtils.toInt(strings[6]));
                 entry.setBin(strings[7]);
                 entry.setReady(strings[8]);
                 entry.setRating(strings[9]);

@@ -9,8 +9,8 @@ public class WineEntry {
     private String name;
     private String type;
     private String year;
-    private String price;
-    private String qty;
+    private double price;
+    private int qty;
     private String bin;
     private String ready;
     private String rating;
