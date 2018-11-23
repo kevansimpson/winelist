@@ -10,7 +10,7 @@ public class ButtonRenderer extends AbstractPanel implements TableCellRenderer {
 
     public ButtonRenderer() {
         super(null);
-        setOpaque(true);
+        setOpaque(false);
         setLayout(new FlowLayout(FlowLayout.CENTER, 2, 3));
         add(button);
     }

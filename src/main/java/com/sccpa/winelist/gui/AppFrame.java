@@ -6,7 +6,11 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class AppFrame extends JFrame implements WineService {
 
@@ -26,6 +30,26 @@ public class AppFrame extends JFrame implements WineService {
         initUI();
     }
 
+    public void reloadData() {
+        tableView.updateData(fetchEntireList());
+    }
+
+    public void printData() {
+        // TODO implement
+        JOptionPane.showMessageDialog(null, "Not implemented yet... sorry!");
+    }
+
+    public void setMessage(boolean error, Object... messages) {
+        messageLabel.setForeground(error ? Color.RED : Color.GREEN.darker().darker());
+        messageLabel.setText(StringUtils.join(messages));
+        messageLabel.setVisible(true);
+    }
+
+    @Override
+    public boolean isLoggedIn() {
+        return wineService.isLoggedIn();
+    }
+
     @Override
     public boolean login(String user, String pswd) {
         boolean login = false;
@@ -37,12 +61,18 @@ public class AppFrame extends JFrame implements WineService {
 
         if (login) {
             setMessage(false);
-            tableView.updateData(fetchEntireList());
-            cardLayout.show(cardPanel, TABLE_CARD);
+            reloadData();
+            gotoView(TABLE_CARD);
             return true;
         }
 
         return false;
+    }
+
+    @Override
+    public void logout() {
+        wineService.logout();
+        gotoView(LOGIN_CARD);
     }
 
     @Override
@@ -69,13 +99,18 @@ public class AppFrame extends JFrame implements WineService {
         return updated;
     }
 
-    public void setMessage(boolean error, Object... messages) {
-        messageLabel.setForeground(error ? Color.RED : Color.GREEN.darker().darker());
-        messageLabel.setText(StringUtils.join(messages));
-        messageLabel.setVisible(true);
+    @Override
+    public WineEntry delete(WineEntry entry) {
+        tableView.removeData(entry);
+        return wineService.delete(entry);
+    }
+
+    private void gotoView(final String cardId) {
+        cardLayout.show(cardPanel, cardId);
     }
 
     private void initUI() {
+        createMenu();
         createLayout();
 
         final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -100,13 +135,56 @@ public class AppFrame extends JFrame implements WineService {
         loginPnl.add(new LoginScreen(this));
         cardPanel.add(loginPnl, LOGIN_CARD);
 
-//        final JButton btn = new JButton("go back");
-//        btn.addActionListener(event -> cardLayout.show(cardPanel, LOGIN_CARD));
-//        final JPanel panel = new JPanel();
-//        panel.add(btn);
         tableView = new TableView(this);
         cardPanel.add(tableView, TABLE_CARD);
         getContentPane().add(cardPanel, BorderLayout.CENTER);
+    }
+
+    private void createMenu() {
+        final JMenuBar menuBar = new JMenuBar();
+        final JMenu menu = new JMenu("Winelist");
+        menu.setMnemonic(KeyEvent.VK_W);
+        menuBar.add(menu);
+
+        JMenuItem menuItem = new JMenuItem("Print List",
+                new ImageIcon(getClass().getResource("/icons/Report.gif")));
+        menuItem.setMnemonic(KeyEvent.VK_P);
+        menuItem.addActionListener(listener(event -> printData()));
+        menu.add(menuItem);
+
+        menuItem = new JMenuItem("Reload Data",
+                new ImageIcon(getClass().getResource("/icons/heineken.png")));
+        menuItem.setMnemonic(KeyEvent.VK_R);
+        menuItem.addActionListener(listener(event -> reloadData()));
+        menu.add(menuItem);
+
+        menuItem = new JMenuItem("Create New Entry",
+                new ImageIcon(getClass().getResource("/icons/Create.gif")));
+        menuItem.setMnemonic(KeyEvent.VK_N);
+        menuItem.addActionListener(listener(event -> {
+            final CreateDialog dialog = new CreateDialog(AppFrame.this);
+            dialog.setVisible(true);
+        }));
+        menu.add(menuItem);
+
+        menu.addSeparator();
+        menuItem = new JMenuItem("Exit",
+                new ImageIcon(getClass().getResource("/icons/Exit.gif")));
+        menuItem.setMnemonic(KeyEvent.VK_X);
+        menuItem.addActionListener(event -> System.exit(0));
+        menu.add(menuItem);
+        setJMenuBar(menuBar);
+    }
+
+    private ActionListener listener(final Consumer<ActionEvent> action) {
+        return event -> {
+            if (isLoggedIn())
+                action.accept(event);
+            else {
+                gotoView(LOGIN_CARD);
+                setMessage(true, "Please login");
+            }
+        };
     }
 
     public static void setUIFont (javax.swing.plaf.FontUIResource f){

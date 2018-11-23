@@ -38,6 +38,11 @@ public class WineRepository implements WineService {
     }
 
     @Override
+    public boolean isLoggedIn() {
+        return StringUtils.isNotBlank(jwtToken);
+    }
+
+    @Override
     public boolean login(final String username, final String password) {
         try {
             final String url = awsHost + "/auth/login";
@@ -66,7 +71,12 @@ public class WineRepository implements WineService {
             throw new RuntimeException(ex);
         }
 
-        return StringUtils.isNotBlank(jwtToken);
+        return isLoggedIn();
+    }
+
+    @Override
+    public void logout() {
+        jwtToken = null;
     }
 
     @Override
@@ -131,7 +141,9 @@ public class WineRepository implements WineService {
                     "changedRows": 0
                 }
              */
-            entry.setId(NumberUtils.toLong(String.valueOf(entity.getBody().get("insertId"))));
+            if (entity.getBody() != null)
+                entry.setId(NumberUtils.toLong(String.valueOf(entity.getBody().get("insertId"))));
+
             return entry;
         }
         catch (Exception ex) {
@@ -140,7 +152,41 @@ public class WineRepository implements WineService {
         }
     }
 
-    private List<WineEntry> queryList(final Object... parameters) {
+    @Override
+    public WineEntry delete(final WineEntry entry) {
+        final String url = toUrl(awsHost, "wines", entry.getId());
+        try {
+            final ResponseEntity<Map> entity = restTemplate.exchange(
+                    createRequest(null, HttpMethod.DELETE, url),
+                    new ParameterizedTypeReference<Map>() {});
+            LOGGER.debug("status code: {}", entity.getStatusCode());
+            LOGGER.debug("headers:\n{}", entity.getHeaders());
+            LOGGER.debug("deleted: {}", entity.getBody());
+            /*
+                {
+                    "fieldCount": 0,
+                    "affectedRows": 1,
+                    "insertId": 0,
+                    "serverStatus": 2,
+                    "warningCount": 0,
+                    "message": "",
+                    "protocol41": true,
+                    "changedRows": 0
+                }
+            */
+            if (entity.getBody() != null)
+                if (NumberUtils.toInt(String.valueOf(entity.getBody().get("affectedRows"))) > 0)
+                    entry.setId(-1);
+
+            return entry;
+        }
+        catch (Exception ex) {
+            LOGGER.error("Insert failed!", ex);
+            return null;
+        }
+    }
+
+    private List<WineEntry> queryList() {
         try {
             ResponseEntity<List<WineEntry>> entity = restTemplate.exchange(
                     createRequest(null, HttpMethod.GET, toUrl(awsHost, "wines")),

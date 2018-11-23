@@ -7,7 +7,11 @@ import java.util.List;
 
 public interface WineService {
 
+    boolean isLoggedIn();
+
     boolean login(String user, String pswd);
+
+    void logout();
 
     List<WineEntry> fetchEntireList();
 
@@ -16,4 +20,6 @@ public interface WineService {
     WineEntry insert(WineEntry entry);
 
     WineEntry update(WineEntry entry);
+
+    WineEntry delete(WineEntry entry);
 }

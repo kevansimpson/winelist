@@ -1,17 +1,16 @@
 package com.sccpa.winelist.gui;
 
 import com.sccpa.winelist.data.WineEntry;
-import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class TableView extends AbstractPanel {
 
@@ -21,6 +20,7 @@ public class TableView extends AbstractPanel {
 
     private JLabel bottleCountLbl;
     private JLabel totalValueLbl;
+    private JLabel filterLbl;
     private JTable wineTable;
     private WineTableModel wineTableModel;
     private TableRowSorter<WineTableModel> sorter;
@@ -42,6 +42,15 @@ public class TableView extends AbstractPanel {
         return Pair.of(row, wineTable.getSelectedColumn());
     }
 
+    public void removeData(final WineEntry newData) {
+        if (newData != null) {
+            final List<WineEntry> fullList = wineTableModel.getWineEntryList();
+            fullList.remove(newData);
+            updateData(fullList);
+            wineTable.setRowSelectionInterval(0, 0);
+        }
+    }
+
     public void updateData(final WineEntry newData) {
         if (newData != null) {
             final List<WineEntry> fullList = wineTableModel.getWineEntryList()
@@ -55,6 +64,7 @@ public class TableView extends AbstractPanel {
     }
 
     public void updateData(final List<WineEntry> newData) {
+        wineTable.clearSelection();
         if (newData == null) {
             wineTableModel.updateData(new ArrayList<>());
             bottleCountLbl.setText("0");
@@ -77,17 +87,22 @@ public class TableView extends AbstractPanel {
 
         bottleCountLbl = new JLabel("0");
         totalValueLbl = new JLabel("0.00");
+        filterLbl = new JLabel("0 filter(s)");
 
-        final JPanel northPnl = new JPanel();
-        final BoxLayout boxLayout = new BoxLayout(northPnl, BoxLayout.X_AXIS);
-        northPnl.setLayout(boxLayout);
+        final JButton createBtn = new JButton("Create New", getIcon("/icons/Create.gif"));
+        createBtn.addActionListener(event -> {
+            final CreateDialog dialog = new CreateDialog(getAppFrame());
+            dialog.setVisible(true);
+        });
         final JPanel totalsPnl = wrap(new JLabel("Bottle Count: "), bottleCountLbl);
-        final JPanel valuesPnl = wrap(new JLabel("Total Value: USD "), totalValueLbl);
-        northPnl.add(Box.createHorizontalGlue());
-        northPnl.add(totalsPnl);
-        northPnl.add(Box.createHorizontalBox());
-        northPnl.add(valuesPnl);
-        northPnl.add(Box.createHorizontalGlue());
+        final JPanel valuesPnl = wrap(new JLabel("Collection Value: USD "), totalValueLbl);
+        final JButton filterBtn = new JButton("Filter Data", getIcon("/icons/Filter.gif"));
+        filterBtn.addActionListener(event -> {
+            // TODO implement
+            JOptionPane.showMessageDialog(null, "Not implemented yet... sorry!");
+        });
+        final JPanel northPnl = new JPanel(new FlowLayout(FlowLayout.CENTER, 80, 5));
+        Stream.of(createBtn, totalsPnl, valuesPnl, filterBtn, filterLbl).forEach(northPnl::add);
         add(northPnl, BorderLayout.NORTH);
 
         wineTable = new JTable(wineTableModel);

@@ -16,7 +16,6 @@ public class ButtonEditor extends AbstractCellEditor
 
     private ImageIcon currentIcon;
     private JButton button;
-    private JDialog dialog;
     private TableView tableView;
 
     public ButtonEditor(final TableView view) {
@@ -31,15 +30,16 @@ public class ButtonEditor extends AbstractCellEditor
         final Pair<Integer, Integer> selectedCell = tableView.getSelectedCell();
         switch (selectedCell.getRight()) {
             case 0: // edit
-                final EditDialog dialog = new EditDialog(
+                final EditDialog edit = new EditDialog(
                         tableView.getAppFrame(), tableView.getSelectedBottle());
-                dialog.setVisible(true);
+                edit.setVisible(true);
                 break;
             case 10: // remove
-
+                final RemoveDialog remove = new RemoveDialog(
+                        tableView.getAppFrame(), tableView.getSelectedBottle());
+                remove.setVisible(true);
                 break;
         }
-        JOptionPane.showMessageDialog(null, "hi: "+ tableView.getSelectedCell());
         //Make the renderer reappear.
         fireEditingStopped();
     }
