@@ -1,6 +1,7 @@
 package com.sccpa.winelist.gui;
 
 import com.sccpa.winelist.data.WineEntry;
+import com.sccpa.winelist.print.PrintService;
 import com.sccpa.winelist.service.WineService;
 import org.apache.commons.lang3.StringUtils;
 
@@ -9,6 +10,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -18,15 +20,17 @@ public class AppFrame extends JFrame implements WineService {
     private static final String TABLE_CARD = "TableCard";
 
     private final WineService wineService;
+    private final PrintService printService;
 
     private JLabel messageLabel;
     private JPanel cardPanel;
     private CardLayout cardLayout;
     private TableView tableView;
 
-    public AppFrame(final WineService service) {
+    public AppFrame(final WineService wine, final PrintService print) {
         super("JMS Winelist");
-        wineService = service;
+        wineService = wine;
+        printService = print;
         initUI();
     }
 
@@ -35,8 +39,15 @@ public class AppFrame extends JFrame implements WineService {
     }
 
     public void printData() {
-        // TODO implement
-        JOptionPane.showMessageDialog(null, "Not implemented yet... sorry!");
+        try {
+            final File report = printService.print(fetchEntireList());
+            System.out.println("REPORT: "+ report.getAbsolutePath());
+            Desktop.getDesktop().open(report);
+        }
+        catch (Exception ex) {
+            ex.printStackTrace();
+            setMessage(true, "Printing failed: ", ex.getMessage());
+        }
     }
 
     public void setMessage(boolean error, Object... messages) {
